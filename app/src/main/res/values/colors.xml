@@ -1,5 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="uth_green">#246447</color>
+    <color name="uth_green_dark">#173E2D</color>
+    <color name="page_background">#F5F7F3</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="ink">#1E3027</color>
+    <color name="muted">#728078</color>
+    <color name="outline">#D8E0D8</color>
+    <color name="soft_green">#E8EFE7</color>
+    <color name="record_red">#C64D4D</color>
 </resources>

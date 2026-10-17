@@ -1,3 +1,34 @@
 <resources>
-    <string name="app_name">Exa1Par6818</string>
+    <string name="app_name">Apuntes UTH</string>
+    <string name="logo_description">Universidad Tecnológica de Honduras</string>
+    <string name="eyebrow">TU VOZ, TUS IDEAS</string>
+    <string name="screen_title">Nuevo apunte</string>
+    <string name="screen_subtitle">Dale voz a lo que aprendes.</string>
+    <string name="ready">Listo para grabar</string>
+    <string name="timer">00:00</string>
+    <string name="record">Grabar</string>
+    <string name="play">Reproducir</string>
+    <string name="details_title">Detalles del apunte</string>
+    <string name="required_hint">Todos los campos son obligatorios</string>
+    <string name="subject">Asignatura *</string>
+    <string name="topic">Tema *</string>
+    <string name="topic_placeholder">Ej. Ciclo de vida de una Activity</string>
+    <string name="date">Fecha *</string>
+    <string name="description">Descripción *</string>
+    <string name="description_placeholder">Escribe un breve resumen de tu apunte…</string>
+    <string name="save">Guardar apunte</string>
+    <string name="view_notes">Ver mis apuntes</string>
+    <string name="local_note">Tus ideas, siempre contigo. Almacenamiento local.</string>
+    <string name="required_error">Este campo es obligatorio</string>
+    <string name="subject_error">Selecciona una asignatura</string>
+    <string name="date_error">Selecciona una fecha válida</string>
+    <string name="record_pending">La grabación de audio estará disponible próximamente.</string>
+    <string name="play_pending">Aquí podrás escuchar tu nota cuando grabes un audio.</string>
+    <string name="save_pending">Formulario válido. El guardado local estará disponible próximamente.</string>
+    <string name="notes_pending">Aquí podrás consultar tus apuntes guardados próximamente.</string>
+    <string-array name="subjects">
+        <item>Programación Móvil I</item>
+        <item>Base de Datos I</item>
+        <item>Ingeniería de Software</item>
+    </string-array>
 </resources>

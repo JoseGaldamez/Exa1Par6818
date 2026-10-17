@@ -1,9 +1,23 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Exa1Par6818" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+<resources>
+    <style name="Base.Theme.Exa1Par6818" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/uth_green</item>
+        <item name="colorOnPrimary">@color/surface</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/ink</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/page_background</item>
+        <item name="android:colorAccent">@color/uth_green</item>
     </style>
-
     <style name="Theme.Exa1Par6818" parent="Base.Theme.Exa1Par6818" />
+    <style name="NoteInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/surface</item>
+        <item name="boxStrokeColor">@color/uth_green</item>
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+        <item name="hintTextColor">@color/uth_green</item>
+        <item name="android:textColorHint">@color/muted</item>
+    </style>
 </resources>
