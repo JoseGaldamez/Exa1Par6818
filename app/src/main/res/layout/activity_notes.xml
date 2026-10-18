@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/notesRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".views.NotesActivity">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/notesToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:title="@string/notes_title"
+        app:titleTextColor="@color/ink"
+        app:navigationIcon="@drawable/ic_back"
+        app:navigationIconTint="@color/uth_green"
+        app:navigationContentDescription="@string/back" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/notesToolbar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="20dp"
+            android:text="@string/notes_subtitle"
+            android:textColor="@color/muted"
+            android:textSize="14sp" />
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/NoteInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/filter_subject"
+            app:endIconMode="dropdown_menu">
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/subjectFilter"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="56dp"
+                android:inputType="none"
+                android:textColor="@color/ink"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <TextView
+            android:id="@+id/notesCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="14dp"
+            android:accessibilityLiveRegion="polite"
+            android:textColor="@color/muted"
+            android:textSize="12sp"
+            tools:text="3 apuntes" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <ListView
+                android:id="@+id/notesList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="10dp"
+                android:listSelector="@android:color/transparent"
+                android:paddingBottom="12dp"
+                tools:listitem="@layout/item_note" />
+            <LinearLayout
+                android:id="@+id/emptyNotes"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="24dp">
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_notes"
+                    app:tint="@color/uth_green" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center"
+                    android:text="@string/empty_notes"
+                    android:textColor="@color/ink"
+                    android:textSize="18sp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="@string/empty_notes_hint"
+                    android:textColor="@color/muted"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </FrameLayout>
+        <ProgressBar
+            android:id="@+id/notesLoading"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:contentDescription="@string/loading_notes"
+            android:indeterminate="true"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/selectedNoteLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:text="@string/select_note_hint"
+            android:textColor="@color/muted"
+            android:textSize="12sp" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/listPlayButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:enabled="false"
+            android:text="@string/play"
+            app:icon="@drawable/ic_play"
+            app:iconGravity="textStart"
+            app:cornerRadius="14dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/listEditButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:enabled="false"
+                android:text="@string/edit_note"
+                app:icon="@drawable/ic_edit"
+                app:iconGravity="textStart"
+                app:cornerRadius="14dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/listDeleteButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:enabled="false"
+                android:text="@string/delete_note"
+                android:textColor="@color/record_red"
+                app:icon="@drawable/ic_delete"
+                app:iconTint="@color/record_red"
+                app:iconGravity="textStart"
+                app:cornerRadius="14dp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
