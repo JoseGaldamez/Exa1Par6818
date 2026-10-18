@@ -1,11 +1,9 @@
 # Integrantes del equipo
 
-| Integrante | Número de cuenta provisional |
+| Integrante | Número de cuenta |
 | --- | --- |
-| José Galdámez | 2026100001 |
-| Linda Nolasco | 2026100002 |
-
-Los números de cuenta son temporales y se reemplazarán por los reales.
+| José Galdámez | 201210011668 |
+| Linda Nolasco | 202110080018 |
 
 # Apuntes UTH
 
