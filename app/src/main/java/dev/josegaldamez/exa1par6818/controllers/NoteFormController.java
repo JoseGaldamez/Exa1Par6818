@@ -26,6 +26,9 @@ public final class NoteFormController {
         Map<Field, Integer> errors = new EnumMap<>(Field.class);
         if (!subjects.contains(draft.subject)) errors.put(Field.SUBJECT, R.string.subject_error);
         if (draft.topic.isEmpty()) errors.put(Field.TOPIC, R.string.required_error);
+        else if (!draft.topic.matches("(?:\\p{L}\\p{M}*|[0-9 ])+")) {
+            errors.put(Field.TOPIC, R.string.topic_symbols_error);
+        }
         if (parseDate(draft.date) == null) errors.put(Field.DATE, R.string.date_error);
         if (draft.description.isEmpty()) errors.put(Field.DESCRIPTION, R.string.required_error);
         return errors;

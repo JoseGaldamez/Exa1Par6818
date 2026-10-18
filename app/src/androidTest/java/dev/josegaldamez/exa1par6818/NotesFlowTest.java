@@ -22,6 +22,8 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import dev.josegaldamez.exa1par6818.controllers.AudioRecordingController;
 import dev.josegaldamez.exa1par6818.controllers.NotesController;
 import dev.josegaldamez.exa1par6818.dao.NoteDao;
+import dev.josegaldamez.exa1par6818.dao.SubjectDao;
+import dev.josegaldamez.exa1par6818.dao.NotesDatabaseHelper;
 import dev.josegaldamez.exa1par6818.models.Note;
 import dev.josegaldamez.exa1par6818.views.MainActivity;
 
@@ -35,6 +37,10 @@ import static org.junit.Assert.*;
 public class NotesFlowTest {
     @Test public void createListenFilterEditAndDeleteNoteWithItsAudio() throws Exception {
         String topic = "Prueba de apuntes " + System.currentTimeMillis();
+        String otherSubject = "Filtro de prueba " + System.currentTimeMillis();
+        try (SubjectDao subjects = new SubjectDao(InstrumentationRegistry.getInstrumentation().getTargetContext())) {
+            subjects.add(otherSubject);
+        }
         try (ParcelFileDescriptor command = InstrumentationRegistry.getInstrumentation().getUiAutomation()
                 .executeShellCommand("pm grant dev.josegaldamez.exa1par6818 android.permission.RECORD_AUDIO");
              FileInputStream output = new FileInputStream(command.getFileDescriptor())) {
@@ -45,7 +51,7 @@ public class NotesFlowTest {
         File persistedFile = null;
         try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
             scenario.onActivity(activity -> {
-                ((MaterialAutoCompleteTextView) activity.findViewById(R.id.subjectInput)).setText("Programación Móvil I", false);
+                ((MaterialAutoCompleteTextView) activity.findViewById(R.id.subjectInput)).setText("Programación Móvil 1", false);
                 ((EditText) activity.findViewById(R.id.topicInput)).setText(topic);
                 ((EditText) activity.findViewById(R.id.descriptionInput)).setText("Descripción de prueba");
                 activity.findViewById(R.id.recordButton).performClick();
@@ -80,11 +86,11 @@ public class NotesFlowTest {
             waitForView(R.id.notesList);
             // Filter to another subject and verify the newly edited note is excluded.
             onView(withId(R.id.subjectFilter)).perform(click());
-            onView(withText("Base de Datos I")).inRoot(androidx.test.espresso.matcher.RootMatchers.isPlatformPopup()).perform(click());
+            onView(withText(otherSubject)).inRoot(androidx.test.espresso.matcher.RootMatchers.isPlatformPopup()).perform(click());
             SystemClock.sleep(500);
             onView(withText(topic + " editado")).check(doesNotExist());
             onView(withId(R.id.subjectFilter)).perform(click());
-            onView(withText("Programación Móvil I")).inRoot(androidx.test.espresso.matcher.RootMatchers.isPlatformPopup()).perform(click());
+            onView(withText("Programación Móvil 1")).inRoot(androidx.test.espresso.matcher.RootMatchers.isPlatformPopup()).perform(click());
             SystemClock.sleep(500);
             waitForText(topic + " editado");
             onView(withText(topic + " editado")).perform(click());
@@ -103,6 +109,9 @@ public class NotesFlowTest {
             }
             assertTrue("Deleting a note removes both SQLite metadata and audio", deleted);
         } finally {
+            try (NotesDatabaseHelper helper = new NotesDatabaseHelper(InstrumentationRegistry.getInstrumentation().getTargetContext())) {
+                helper.getWritableDatabase().delete("subjects", "name = ?", new String[]{otherSubject});
+            }
             try (NoteDao dao = new NoteDao(InstrumentationRegistry.getInstrumentation().getTargetContext())) {
                 if (id >= 0) dao.delete(id);
                 for (Note note : dao.findBySubject(null)) {

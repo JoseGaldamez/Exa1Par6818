@@ -20,9 +20,9 @@ final class FormKeyboardHelper {
     private final NestedScrollView scroll;
     private final Runnable revealFocus = this::revealFocusedInput;
 
-    FormKeyboardHelper(NestedScrollView scroll, EditText... inputs) {
+    FormKeyboardHelper(View root, NestedScrollView scroll, EditText... inputs) {
         this.scroll = scroll;
-        ViewCompat.setOnApplyWindowInsetsListener(scroll, (view, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(root, (view, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             Insets keyboard = insets.getInsets(WindowInsetsCompat.Type.ime());
             view.setPadding(bars.left, bars.top, bars.right, Math.max(bars.bottom, keyboard.bottom));
@@ -54,7 +54,7 @@ final class FormKeyboardHelper {
                 @Override public void afterTextChanged(Editable text) { scheduleReveal(); }
             });
         }
-        ViewCompat.requestApplyInsets(scroll);
+        ViewCompat.requestApplyInsets(root);
     }
 
     private void scheduleReveal() {

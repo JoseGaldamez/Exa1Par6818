@@ -15,6 +15,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Exa1Par6818">
         <activity
+            android:name=".views.DictationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".views.MembersActivity"
+            android:exported="false" />
+        <activity
             android:name=".views.NotesActivity"
             android:exported="false" />
         <activity

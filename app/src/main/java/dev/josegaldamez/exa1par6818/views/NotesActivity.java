@@ -29,6 +29,7 @@ import java.util.List;
 import dev.josegaldamez.exa1par6818.R;
 import dev.josegaldamez.exa1par6818.controllers.AudioRecordingController;
 import dev.josegaldamez.exa1par6818.controllers.NotesController;
+import dev.josegaldamez.exa1par6818.controllers.SubjectsController;
 import dev.josegaldamez.exa1par6818.models.AudioRecordingState;
 import dev.josegaldamez.exa1par6818.models.Note;
 import dev.josegaldamez.exa1par6818.models.NoteOperation;
@@ -39,6 +40,7 @@ public class NotesActivity extends AppCompatActivity {
     private AudioRecordingController audioController;
     private NotesAdapter adapter;
     private MaterialAutoCompleteTextView filter;
+    private SubjectsController subjectsController;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,18 +64,26 @@ public class NotesActivity extends AppCompatActivity {
                     return true;
                 });
         filter = findViewById(R.id.subjectFilter);
-        String[] subjects = getResources().getStringArray(R.array.subjects);
-        String[] filters = new String[subjects.length + 1];
-        filters[0] = getString(R.string.all_subjects);
-        System.arraycopy(subjects, 0, filters, 1, subjects.length);
-        filter.setSimpleItems(filters);
+        subjectsController = new ViewModelProvider(this).get(SubjectsController.class);
+        subjectsController.subjects().observe(this, subjects -> {
+            String[] filters = new String[subjects.length + 1];
+            filters[0] = getString(R.string.all_subjects);
+            System.arraycopy(subjects, 0, filters, 1, subjects.length);
+            filter.setSimpleItems(filters);
+        });
+        subjectsController.errors().observe(this, error -> {
+            if (error == null) return;
+            subjectsController.consumeError();
+            Snackbar.make(findViewById(R.id.notesRoot), error, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.retry, view -> subjectsController.reload()).show();
+        });
         String initial = savedInstanceState == null && getIntent().hasExtra(EXTRA_SUBJECT)
                 ? getIntent().getStringExtra(EXTRA_SUBJECT) : controller.getFilter();
-        filter.setText(initial == null ? filters[0] : initial, false);
+        filter.setText(initial == null ? getString(R.string.all_subjects) : initial, false);
         filter.setOnItemClickListener((parent, view, position, id) -> {
             controller.select(-1);
             audioController.clearDraft();
-            controller.loadNotes(position == 0 ? null : filters[position]);
+            refresh();
         });
         adapter = new NotesAdapter();
         ListView list = findViewById(R.id.notesList);
@@ -173,6 +183,7 @@ public class NotesActivity extends AppCompatActivity {
 
     @Override protected void onResume() {
         super.onResume();
+        subjectsController.reload();
         if (!controller.isBusy()) refresh();
     }
 

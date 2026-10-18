@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import dev.josegaldamez.exa1par6818.R;
 import dev.josegaldamez.exa1par6818.dao.AudioRecordingDao;
 import dev.josegaldamez.exa1par6818.dao.NoteDao;
+import dev.josegaldamez.exa1par6818.dao.SubjectDao;
 import dev.josegaldamez.exa1par6818.models.AudioRecording;
 import dev.josegaldamez.exa1par6818.models.Note;
 import dev.josegaldamez.exa1par6818.models.NoteDraft;
@@ -101,12 +102,6 @@ public final class NotesController extends AndroidViewModel {
 
     public void save(long id, NoteDraft draft, AudioRecording audio) {
         if (isBusy()) return;
-        NoteFormController validation = new NoteFormController(getApplication().getResources()
-                .getStringArray(R.array.subjects));
-        if (!validation.validate(draft).isEmpty()) {
-            errors.setValue(R.string.invalid_note);
-            return;
-        }
         if (id < 0 && audio == null) {
             errors.setValue(R.string.audio_required);
             return;
@@ -114,7 +109,12 @@ public final class NotesController extends AndroidViewModel {
         busy.setValue(true);
         worker.execute(() -> {
             AudioRecording copy = null;
-            try {
+            try (SubjectDao subjects = new SubjectDao(getApplication())) {
+                NoteFormController validation = new NoteFormController(subjects.findAll());
+                if (!validation.validate(draft).isEmpty()) {
+                    fail(R.string.invalid_note);
+                    return;
+                }
                 Note saved;
                 if (id < 0) {
                     copy = audioDao.copyForNote(audio);

@@ -13,6 +13,8 @@ import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import dev.josegaldamez.exa1par6818.R;
 import dev.josegaldamez.exa1par6818.models.Note;
@@ -20,6 +22,9 @@ import dev.josegaldamez.exa1par6818.models.Note;
 final class NotesAdapter extends BaseAdapter {
     private final List<Note> notes = new ArrayList<>();
     private long selectedId = -1;
+    private final SimpleDateFormat storedDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
+    private final SimpleDateFormat displayDateFormat = new SimpleDateFormat(
+            "d 'de' MMMM 'de' yyyy", new Locale("es", "HN"));
 
     void submit(List<Note> data, long selectedId) {
         notes.clear();
@@ -52,10 +57,19 @@ final class NotesAdapter extends BaseAdapter {
         long seconds = note.durationMs / 1000;
         String duration = String.format(Locale.ROOT, "%02d:%02d", seconds / 60, seconds % 60);
         ((TextView) row.findViewById(R.id.noteMeta)).setText(parent.getContext()
-                .getString(R.string.note_row_meta, note.date, duration));
+                .getString(R.string.note_row_meta, readableDate(note.date), duration));
         ((TextView) row.findViewById(R.id.noteTopic)).setText(note.topic);
         ((TextView) row.findViewById(R.id.noteSubject)).setText(note.subject);
         ((TextView) row.findViewById(R.id.noteDescription)).setText(note.description);
         return row;
+    }
+
+    private String readableDate(String date) {
+        try {
+            storedDateFormat.setLenient(false);
+            return displayDateFormat.format(storedDateFormat.parse(date));
+        } catch (ParseException exception) {
+            return date;
+        }
     }
 }

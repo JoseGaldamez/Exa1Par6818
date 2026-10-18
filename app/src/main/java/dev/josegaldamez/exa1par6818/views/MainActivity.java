@@ -4,6 +4,7 @@ import dev.josegaldamez.exa1par6818.R;
 import dev.josegaldamez.exa1par6818.controllers.AudioRecordingController;
 import dev.josegaldamez.exa1par6818.controllers.NoteFormController;
 import dev.josegaldamez.exa1par6818.controllers.NotesController;
+import dev.josegaldamez.exa1par6818.controllers.SubjectsController;
 import dev.josegaldamez.exa1par6818.models.Note;
 import dev.josegaldamez.exa1par6818.models.NoteOperation;
 import dev.josegaldamez.exa1par6818.models.NoteDraft;
@@ -34,6 +35,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.core.view.WindowInsetsCompat;
@@ -60,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean loadingEditor;
     private AudioRecordingController audioController;
     private NoteFormController formController;
+    private SubjectsController subjectsController;
+    private AlertDialog newSubjectDialog;
     private final ActivityResultLauncher<String> microphonePermission = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(), granted -> {
                 if (granted) audioController.startRecording();
@@ -73,6 +77,15 @@ public class MainActivity extends AppCompatActivity {
     private TextInputLayout topicLayout;
     private TextInputLayout dateLayout;
     private TextInputLayout descriptionLayout;
+    private final ActivityResultLauncher<Intent> descriptionDictation = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), result -> {
+                Intent data = result.getData();
+                if (result.getResultCode() == RESULT_OK && data != null
+                        && data.hasExtra(DictationActivity.EXTRA_DESCRIPTION)) {
+                    descriptionInput.setText(data.getStringExtra(DictationActivity.EXTRA_DESCRIPTION));
+                    descriptionLayout.setError(null);
+                }
+            });
     private final Calendar selectedDate = Calendar.getInstance();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
 
@@ -100,8 +113,41 @@ public class MainActivity extends AppCompatActivity {
         dateInput = findViewById(R.id.dateInput);
         descriptionInput = findViewById(R.id.descriptionInput);
         formController = new NoteFormController(getResources().getStringArray(R.array.subjects));
-        new FormKeyboardHelper(findViewById(R.id.main), topicInput, descriptionInput);
-        subjectInput.setSimpleItems(R.array.subjects);
+        subjectsController = new ViewModelProvider(this).get(SubjectsController.class);
+        subjectsController.subjects().observe(this, subjects -> {
+            subjectInput.setSimpleItems(subjects);
+            formController = new NoteFormController(subjects);
+        });
+        subjectsController.busy().observe(this, busy -> {
+            updateSubjectControls();
+            if (newSubjectDialog != null && newSubjectDialog.isShowing()) {
+                newSubjectDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(!busy);
+            }
+        });
+        subjectsController.errors().observe(this, error -> {
+            if (error == null) return;
+            subjectsController.consumeError();
+            if (newSubjectDialog != null && newSubjectDialog.isShowing()) {
+                ((TextInputLayout) newSubjectDialog.findViewById(R.id.newSubjectLayout))
+                        .setError(getString(error));
+            } else showMessage(error);
+        });
+        subjectsController.created().observe(this, name -> {
+            if (name == null) return;
+            subjectsController.consumeCreated();
+            subjectInput.setText(name, false);
+            subjectLayout.setError(null);
+            if (newSubjectDialog != null) newSubjectDialog.dismiss();
+        });
+        new FormKeyboardHelper(findViewById(R.id.mainRoot), findViewById(R.id.main),
+                topicInput, descriptionInput);
+        findViewById(R.id.membersButton).setOnClickListener(v ->
+                startActivity(new Intent(this, MembersActivity.class)));
+        findViewById(R.id.addSubjectButton).setOnClickListener(v -> showNewSubjectDialog());
+        findViewById(R.id.dictateDescriptionButton).setOnClickListener(v ->
+                descriptionDictation.launch(new Intent(this, DictationActivity.class)
+                        .putExtra(DictationActivity.EXTRA_DESCRIPTION, textOf(descriptionInput))
+                        .putExtra(DictationActivity.EXTRA_TOPIC, textOf(topicInput))));
         dateFormat.setLenient(false);
         // Selection is exclusively through the calendar; keep keyboard and accessibility focus.
         dateInput.setKeyListener(null);
@@ -150,10 +196,11 @@ public class MainActivity extends AppCompatActivity {
             findViewById(R.id.saveButton).setEnabled(enabled);
             findViewById(R.id.notesButton).setEnabled(enabled);
             findViewById(R.id.editorBackButton).setEnabled(enabled);
-            subjectInput.setEnabled(enabled);
+            updateSubjectControls();
             topicInput.setEnabled(enabled);
             dateInput.setEnabled(enabled);
             descriptionInput.setEnabled(enabled);
+            updateDictationButton();
             findViewById(R.id.recordButton).setEnabled(enabled);
             findViewById(R.id.pauseRecordingButton).setEnabled(enabled);
             findViewById(R.id.finishRecordingButton).setEnabled(enabled);
@@ -229,8 +276,43 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.saveButton).setEnabled(!notesController.isBusy());
     }
 
+    private void updateSubjectControls() {
+        boolean enabled = !notesController.isBusy() && !loadingEditor
+                && !Boolean.TRUE.equals(subjectsController.busy().getValue());
+        subjectInput.setEnabled(enabled);
+        findViewById(R.id.addSubjectButton).setEnabled(enabled);
+    }
+
+    private void showNewSubjectDialog() {
+        View content = getLayoutInflater().inflate(R.layout.dialog_new_subject, null);
+        TextInputLayout layout = content.findViewById(R.id.newSubjectLayout);
+        TextInputEditText input = content.findViewById(R.id.newSubjectInput);
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.new_subject)
+                .setView(content)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.create_subject, null)
+                .create();
+        newSubjectDialog = dialog;
+        clearErrorOnEdit(input, layout);
+        dialog.setOnShowListener(ignored -> {
+            input.requestFocus();
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                String name = textOf(input);
+                if (name.isEmpty()) {
+                    layout.setError(getString(R.string.required_error));
+                } else {
+                    subjectsController.create(name);
+                }
+            });
+        });
+        dialog.show();
+    }
+
     private void saveNote() {
-        if (notesController.isBusy() || loadingEditor || !validateForm()) return;
+        if (notesController.isBusy() || loadingEditor
+                || Boolean.TRUE.equals(subjectsController.busy().getValue()) || !validateForm()) return;
         if (audioController.mode() == AudioRecordingState.Mode.RECORDING
                 || audioController.mode() == AudioRecordingState.Mode.PAUSED) {
             showMessage(R.string.finish_before_save);
@@ -270,17 +352,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showMicrophoneDenied() {
-        Snackbar.make(findViewById(R.id.main), R.string.microphone_denied, Snackbar.LENGTH_LONG)
-                .setAction(R.string.open_settings, v -> startActivity(new Intent(
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.allow_microphone)
+                .setMessage(R.string.microphone_denied)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.open_settings, (dialog, which) -> startActivity(new Intent(
                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                         Uri.parse("package:" + getPackageName()))))
                 .show();
+    }
+
+    private void updateDictationButton() {
+        AudioRecordingState.Mode mode = audioController.mode();
+        findViewById(R.id.dictateDescriptionButton).setEnabled(!notesController.isBusy() && !loadingEditor
+                && mode != AudioRecordingState.Mode.RECORDING && mode != AudioRecordingState.Mode.PAUSED);
     }
 
     private void renderAudioState(AudioRecordingState state) {
         boolean capturing = state.mode == AudioRecordingState.Mode.RECORDING;
         boolean paused = state.mode == AudioRecordingState.Mode.PAUSED;
         boolean active = capturing || paused;
+        updateDictationButton();
         boolean playing = state.mode == AudioRecordingState.Mode.PLAYING;
         boolean canPlay = state.mode == AudioRecordingState.Mode.READY || playing;
         findViewById(R.id.idleControls).setVisibility(active ? View.GONE : View.VISIBLE);
